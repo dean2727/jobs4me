@@ -1,4 +1,4 @@
-set DBHOST=localhost
-set DBUSER=manager
-set DBNAME=pollsdb
-set DBPASS=supersecretpass
+set DBHOST=jobs4me-server
+set DBUSER=dean
+set DBNAME=jobs4medb
+set DBPASS=Iotisfun2

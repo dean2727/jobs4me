@@ -1,4 +1,4 @@
-$Env:DBHOST = "localhost"
-$Env:DBUSER = "manager"
-$Env:DBNAME = "pollsdb"
-$Env:DBPASS = "supersecretpass"
+$Env:DBHOST = "jobs4me-server"
+$Env:DBUSER = "dean"
+$Env:DBNAME = "jos4medb"
+$Env:DBPASS = "Iotisfun2"
