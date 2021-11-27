@@ -30,7 +30,7 @@ class User(models.Model):
     name = models.CharField(max_length=50, blank=False)
     phone_regex = RegexValidator(regex=r'^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$', message="Phone number was entered incorrectly!")
     phone_number = models.CharField(validators=[phone_regex], max_length=18, blank=True)
-    email = models.EmailField(max_length=254, Unique=True, blank=False)
+    email = models.EmailField(max_length=254, blank=False)
     address = models.CharField(max_length=85, blank=False)
     comments = models.CharField(max_length=200, blank=True, null=True)  # blank=True -> not needed in forms
     gpa = models.DecimalField(max_digits=3, decimal_places=2, null=True)
