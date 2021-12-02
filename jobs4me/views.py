@@ -1,56 +1,83 @@
-from django.shortcuts import get_object_or_404, render
-from django.http import HttpResponseRedirect
-from django.urls import reverse
-from django.views import generic
+from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.contrib import messages
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.decorators import login_required
 
-from .models import Choice, Question
+from .models import *
+from .forms import CreateUserForm, UploadResumeForm
 
-class IndexView(generic.ListView):
-    template_name = 'polls/index.html'
-    context_object_name = 'latest_question_list'
+def registerPage(request):
+    if request.user.is_authenticated:
+        return redirect('jobs4me:home')
 
-    def get_queryset(self):
-        """
-        Return the last five published questions (not including those set to be
-        published in the future).
-        """
-        return Question.objects.filter(
-            pub_date__lte=timezone.now()
-        ).order_by('-pub_date')[:5]
+    form = CreateUserForm()
 
-class DetailView(generic.DetailView):
-    model = Question
-    template_name = 'polls/detail.html'
-    def get_queryset(self):
-        """
-        Update the model, excluding any questions that aren't published yet.
-        """
-        return Question.objects.filter(pub_date__lte=timezone.now())
+    if request.method == "POST":
+        form = CreateUserForm(request.POST)
+        if form.is_valid():
+            form.save()
+            user = form.cleaned_data.get('username')
+            messages.success(request, 'Account was created for ' + user)
+            return redirect('jobs4me:login')
+        
+    context = {'form': form}
+    return render(request, 'jobs4me/register.html', context)
 
-class ResultsView(generic.DetailView):
-    model = Question
-    template_name = 'polls/results.html'
-    def get_queryset(self):
-        """
-        Excludes any questions that aren't published yet.
-        """
-        return Question.objects.filter(pub_date__lte=timezone.now())
+def loginPage(request):
+    if request.user.is_authenticated:
+        return redirect('jobs4me:home')
 
-def vote(request, question_id):
-    question = get_object_or_404(Question, pk=question_id)
-    try:
-        selected_choice = question.choice_set.get(pk=request.POST['choice'])
-    except (KeyError, Choice.DoesNotExist):
-        # Redisplay the question voting form.
-        return render(request, 'polls/detail.html', {
-            'question': question,
-            'error_message': "You didn't select a choice.",
-        })
-    else:
-        selected_choice.votes += 1
-        selected_choice.save()
-        # Always return an HttpResponseRedirect after successfully dealing
-        # with POST data. This prevents data from being posted twice if a
-        # user hits the Back button.
-        return HttpResponseRedirect(reverse('polls:results', args=(question.id,)))
+    if request.method == "POST":
+        username = request.POST.get('username')
+        password = request.POST.get('password')
+        user = authenticate(request, username=username, password=password)
+        
+        if user is not None:
+            login(request, user)
+            return redirect('jobs4me:home')
+        else:
+            messages.error(request, 'Incorrect username or password!')
+
+    return render(request, 'jobs4me/login.html')
+
+def logoutUser(request):
+    logout(request)
+    return redirect('jobs4me:login')
+
+# if user is not logged in, send them back to the login page
+@login_required(login_url='jobs4me:login')
+def home(request):
+    if request.method == "POST":
+        form = UploadResumeForm(request.POST, request.FILES)
+        # resume is valid iff a resume was actually uploaded and the form that posted the request has enctype="multipart/form-data"
+        if form.is_valid():
+            resume = Resume(
+                username=request.user,
+                name=request.POST['name'],
+                resume_file=request.FILES['resume_file']
+            )
+            # save resume to the path specified in "upload_to"
+            resume.save()
+    
+    # get customer info and resumes from db, put it in context to pass to page
+    # request.user should hold our username
+    form = UploadResumeForm()
+    user_name = request.user.name
+    email = request.user.email
+    phone_number = request.user.phone_number
+    address = request.user.city + ", " + request.user.state + " " + request.user.country
+    additional_comments = request.user.comments
+    resumes = Resume.objects.filter(username=request.user)
+
+    context = {
+        'form': form,
+        'user_name': user_name,
+        'email': email,
+        'phone_number': phone_number,
+        'address': address,
+        'additional_comments': additional_comments,
+        'resumes': resumes
+    }
+    return render(request, 'jobs4me/dashboard.html', context)

@@ -1,0 +1,31 @@
+{% load static %}
+<link rel="stylesheet" type="text/css" href="{% static 'jobs4me/dashboard_style.css' %}">
+
+<h1>Dashboard for {{request.user}}</h1>
+
+<a href="{% url 'jobs4me:logout' %}">Logout</a>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <input type="submit" value="Submit">
+</form>
+
+<div>
+    <h2>My information</h2>
+    <p>
+        <b>Name: </b>{{user_name}}<br>
+        <b>Email: </b>{{email}}<br>
+        <b>Phone number: </b>{{phone_number}}<br>
+        <b>Address: </b>{{address}}<br>
+        <b>Additional comments: </b>{{additional_comments}}
+    </p>
+</div>
+
+<div>
+    <h2>My resumes</h2>
+    {% for resume in resumes %}
+        <p>{{ resume.name }}</p>
+        {{ resume.resume_file }}
+    {% endfor %}
+</div>
