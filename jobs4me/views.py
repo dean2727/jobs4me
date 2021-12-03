@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required
 from .models import *
 from .forms import CreateUserForm, UploadResumeForm
 
+from jobs4me.resume_parser.extract_data import getResumeKeywords 
+
 def registerPage(request):
     if request.user.is_authenticated:
         return redirect('jobs4me:home')
@@ -51,6 +53,7 @@ def logoutUser(request):
 def home(request):
     if request.method == "POST":
         form = UploadResumeForm(request.POST, request.FILES)
+
         # resume is valid iff a resume was actually uploaded and the form that posted the request has enctype="multipart/form-data"
         if form.is_valid():
             resume = Resume(
@@ -58,6 +61,7 @@ def home(request):
                 name=request.POST['name'],
                 resume_file=request.FILES['resume_file']
             )
+
             # save resume to the path specified in "upload_to"
             resume.save()
     
@@ -70,6 +74,9 @@ def home(request):
     address = request.user.city + ", " + request.user.state + " " + request.user.country
     additional_comments = request.user.comments
     resumes = Resume.objects.filter(username=request.user)
+
+    getResumeKeywords(str(resumes[0].resume_file))
+    #print(resumes[0].resume_file)
 
     context = {
         'form': form,

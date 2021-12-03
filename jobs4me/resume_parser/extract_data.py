@@ -3,14 +3,12 @@ import sys
 import spacy
 from pdfminer.high_level import extract_text
 
-n = len(sys.argv)
-resume_file = sys.argv[1]
+def getResumeKeywords(resume_file_path):
+    name = os.path.join(resume_file_path)
+    text = extract_text(name)
 
-name = os.path.join(resume_file)
-text = extract_text(name)
+    nlp = spacy.load("en_core_web_lg")
+    doc = nlp(text)
 
-nlp = spacy.load("en_core_web_lg")
-doc = nlp(text)
-
-for entry in doc.ents:
-	print(entry.text, entry.label_)
+    for entry in doc.ents:
+        print(entry.text, entry.label_)
