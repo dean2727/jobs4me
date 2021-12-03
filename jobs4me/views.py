@@ -75,7 +75,10 @@ def home(request):
     additional_comments = request.user.comments
     resumes = Resume.objects.filter(username=request.user)
 
-    getResumeKeywords(str(resumes[0].resume_file))
+    try:
+        getResumeKeywords(str(resumes[0].resume_file))
+    except IndexError:
+        print("oof")
     #print(resumes[0].resume_file)
 
     context = {
