@@ -8,7 +8,8 @@ from django.contrib.auth.models import AbstractUser
 class AppUser(AbstractUser):
     username = models.CharField(max_length=50, unique=True)
     name = models.CharField(max_length=50)
-    phone_regex = RegexValidator(regex=r'^(\+\d{1,2}\s)?\(?\d{3}\)?[\s.-]\d{3}[\s.-]\d{4}$', message="Phone number was entered incorrectly!")
+    phone_regex = RegexValidator(regex=r'^\+?[1-9]\d{1,14}$',
+        message="Phone number was entered incorrectly! Make sure it is E.164 international standard format (e.g.: +14255550123)")
     phone_number = models.CharField(validators=[phone_regex], max_length=18)
     email = models.EmailField(max_length=254)
     country = models.CharField(max_length=60)

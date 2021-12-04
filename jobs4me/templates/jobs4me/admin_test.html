@@ -1,0 +1,8 @@
+<form method="POST" action="">
+    {% csrf_token %}
+    <input type="radio" name="option" value="scrape">
+    <label>Press me to scrape jobs and populate the database!</label><br>
+    <input type="radio" name="option" value="resume">
+    <label>Press me to test resume matching with a dummy resume!</label><br>
+    <input type="submit">
+</form>

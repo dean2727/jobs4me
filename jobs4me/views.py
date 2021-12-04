@@ -9,7 +9,32 @@ from .models import *
 from .forms import CreateUserForm, UploadResumeForm
 import os
 
-from jobs4me.resume_parser.extract_data import getResumeKeywords 
+from jobs4me.resume_parser.extract_data import getResumeKeywords
+from jobs4me.job_parser.scraper import add_job_records
+
+def adminTest(request):
+    if not request.user.is_superuser:
+        return redirect('jobs4me:login')
+
+    if request.method == "POST":
+        option = request.POST.get('option')
+        if option == "scrape":
+            records = []
+            #records = add_job_records('robotics engineer', '', 20, records)
+            for r in records:
+                new_job = Job(
+                    title=r[0],
+                    company=r[1],
+                    description=r[2],
+                    salary_range=r[3],
+                    location=r[4],
+                    post_age=r[5],
+                    url=r[6]
+                )
+                new_job.save()                
+        elif option == "resume":
+            print("DEBUG: resume")
+    return render(request, 'jobs4me/admin_test.html')
 
 def registerPage(request):
     if request.user.is_authenticated:
@@ -76,10 +101,10 @@ def home(request):
     additional_comments = request.user.comments
     resumes = Resume.objects.filter(username=request.user)
 
-    try:
-        getResumeKeywords(str(resumes[0].resume_file))
-    except IndexError:
-        print("oof")
+    # try:
+    #     getResumeKeywords(str(resumes[0].resume_file))
+    # except IndexError:
+    #     print("oof")
     #print(resumes[0].resume_file)
 
     context = {

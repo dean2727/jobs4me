@@ -9,8 +9,13 @@ def get_url(position, location):
     # take care of any spaces or commas in the search terms (respectfully)
     position = position.replace(" ", "%20").replace(",", "%2C")
     location = location.replace(" ", "%20").replace(",", "%2C")
-    template = 'https://www.indeed.com/jobs?q={}&l={}'
-    url = template.format(position, location)
+    template = 'https://www.indeed.com/jobs?q={}'
+    if location != '':
+        template += '&l={}'
+        url = template.format(position, location)
+    else:
+        url = template.format(position)
+        # print(url)
     return url
 
 def get_job_info(card, atag):
@@ -40,10 +45,13 @@ def get_job_info(card, atag):
     # use the obtained url to make another search to the job posting, and pull out the job description from there
     response = requests.get(url)
     soup = BeautifulSoup(response.text, 'html.parser')
-    job_description = soup.find('div', {'id': 'jobDescriptionText'}).text
+    try:
+        job_description = soup.find('div', {'id': 'jobDescriptionText'}).text
+    except:
+        job_description = ''
 
-    post_date = job_description_table.find('span', 'date').text
-    # print(post_date)
+    post_age = job_description_table.find('span', 'date').text
+    # print(post_age)
     
     try:
         salary = job_header_table.find('div', 'salary-snippet-container').find('div', 'attribute_snippet').text.strip()
@@ -51,7 +59,7 @@ def get_job_info(card, atag):
         salary = ''
     # print(salary)
     
-    record = (url, title, company, location, job_description, post_date, salary)
+    record = (title, company, job_description, salary, location, post_age, url)
     return record
 
 # retrieve n jobs from indeed.com for a certain job position and location
@@ -85,10 +93,30 @@ def add_job_records(position, location, n, records):
         except AttributeError:
             return records
     
+'''
 records = []
-records = add_job_records('robotics engineer', 'dallas tx', 20, records)
-records = add_job_records('software engineer', 'dallas tx', 20, records)
-records = add_job_records('electrical engineer', 'dallas tx', 20, records)
-records = add_job_records('data science', 'dallas tx', 20, records)
-records = add_job_records('machine learning', 'dallas tx', 20, records)
-#records
+records = add_job_records('robotics engineer', '', 20, records)
+#records = add_job_records('robotics engineer', 'dallas tx', 20, records)
+records = add_job_records('software engineer', '', 20, records)
+records = add_job_records('electrical engineer', '', 20, records)
+records = add_job_records('data science', '', 20, records)
+records = add_job_records('machine learning', '', 20, records)
+
+print("100 jobs from all over the US:")
+print("1st batch of 20 = \'robotics engineer\'")
+print("2nd batch of 20 = \'software engineer\'")
+print("3rd batch of 20 = \'electrical engineer\'")
+print("4th batch of 20 = \'data science engineer\'")
+print("5th batch of 20 = \'machine learning\'")
+i = 1
+for r in records:
+    print("~~~~~~~~~~~~~~~~~~~ JOB " + str(i) + " - " + r[0] + " ~~~~~~~~~~~~~~~~~~~~~")
+    #company, job_description, salary, location, post_age, url)
+    print("Company: " + r[1])
+    print("Job description: " + r[2])
+    print("Salary: " + r[3])
+    print("Location: " + r[4])
+    print("Posted: " + r[5])
+    print("URL: " + r[6])
+    i += 1
+'''

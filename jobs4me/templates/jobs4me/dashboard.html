@@ -1,31 +1,180 @@
-{% load static %}
-<link rel="stylesheet" type="text/css" href="{% static 'jobs4me/dashboard_style.css' %}">
+<!DOCTYPE html>
+<html>
+    
+    <head>
+        <title>Jobs4Me | Dashboard</title>
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
+        <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
+        <!-- {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static 'jobs4me/dashboard_style.css' %}"> -->
+        <style>
+            .gray-div {
+                background-color: #DFDFDF;
+                border-radius: 20px;
+                padding-top: 2%;
+                padding-left: 4%;
+                padding-right: 4%;
+                padding-bottom: 2%;
+            }
 
-<h1>Dashboard for {{request.user}}</h1>
+            .div-header {
+                text-align: center;
+            }
 
-<a href="{% url 'jobs4me:logout' %}">Logout</a>
+            #title-container {
+                padding: 1% 2% 1%;
+            }
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <input type="submit" value="Submit">
-</form>
+            .page-greeting {
+                text-align: center;
+                padding-top: 20px;
+                display: inline;
+                margin-left: 36%;
+            }
 
-<div>
-    <h2>My information</h2>
-    <p>
-        <b>Name: </b>{{user_name}}<br>
-        <b>Email: </b>{{email}}<br>
-        <b>Phone number: </b>{{phone_number}}<br>
-        <b>Address: </b>{{address}}<br>
-        <b>Additional comments: </b>{{additional_comments}}
-    </p>
-</div>
+            .logout-button {
+                cursor: pointer;
+                padding: 7px 12px 7px;
+                background-color: #0B77DB;
+                color: white;
+                border: 3px solid black;
+                border-radius: 10px;
+                margin-right: 2px;
+                float: right;
+                margin-bottom: 20px;
+            }
 
-<div>
-    <h2>My resumes</h2>
-    {% for resume in resumes %}
-        <p>{{ resume.name }}</p>
-        {{ resume.resume_file }}
-    {% endfor %}
-</div>
+            #my-resumes-container {
+                margin-top: 4%;
+            }
+
+            #resume-upload-div {
+                background-color: #0b90db;
+                border: 2px solid black;
+                border-radius: 20px;
+                padding-top: 2%;
+                padding-left: 5%;
+                color: white;
+                padding-right: 5%;
+                text-align: center;
+                padding-bottom: 2%;
+                margin-top: 7%;
+            }
+
+            .submit-input {
+                padding: 7px 12px 7px;
+                background-color: white;
+                border: 2px solid black;
+                border-radius: 10px;
+                cursor: pointer;
+            }
+            
+            .dot {
+                background-color: #0b90db;
+                height: 40px;
+                width: 40px;
+                border-radius: 50%;
+                display: inline-block;
+                text-align: center;
+                color: white;
+                padding-top: 8px;
+            }
+
+            .resume-name, .resume-file-name {
+                display: inline;
+            }
+
+            .resume-name {
+                margin-left: 2%;
+            }
+
+            .resume-file-name {
+                margin-left: 5%;
+                font-size: 10px;
+            }
+
+            .resume-row {
+                background-color: white;
+                padding-left: 2%;
+                padding-top: 2%;
+                padding-right: 2%;
+                padding-bottom: 2%;
+                margin-top: 2%;
+            }
+
+            .trash {
+                display: inline;
+                float: right;
+            }
+
+            .trash-button {
+                background-color: transparent;
+                border-color: #ebebeb;
+                cursor: pointer;
+            }
+
+            .fa-trash {
+                width: 20px;
+                height: 20px;
+            }
+        </style>
+    </head>
+    
+    <body>
+        <div id="title-container">
+            <h2 class="page-greeting">Dashboard for {{request.user}}</h2>
+            <a href="{% url 'jobs4me:logout' %}"><button class="logout-button">Logout</button></a>
+        </div>
+        
+        <div id="top-section-container" class="container">
+            <div class="row">
+                <div class="col-sm-8">
+                    <div class="gray-div">
+                        <h4 class="div-header">My information</h4>
+                        <p>
+                            <b>Name: </b>{{user_name}}<br>
+                            <b>Email: </b>{{email}}<br>
+                            <b>Phone number: </b>{{phone_number}}<br>
+                            <b>Address: </b>{{address}}<br>
+                            <b>Additional comments: </b>{{ additional_comments }}
+                        </p>
+                    </div>
+                </div>
+                <div class="col-sm-4">
+                    <div id="resume-upload-div">
+                        <h4 class="div-header">Upload new resume</h4>
+                        <form method="POST" enctype="multipart/form-data">
+                            {% csrf_token %}
+                            <span>Resume name: </span>{{form.name}}                        
+                            {{ form.resume_file }}
+                            <input type="submit" value="Submit" class="submit-input">
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div id="my-resumes-container" class="container">
+            <div class="row">
+                <div class="col">
+                    <div class="gray-div">
+                        <h4 class="div-header">My resumes</h4>
+                        {% for resume in resumes %}
+                            <div class="resume-row">
+                                <span class="dot">{{ forloop.counter }}</span>
+                                <h5 class="resume-name">{{ resume.name }}</h5>
+                                <p class="resume-file-name">{{ resume.resume_file }}</p>
+                                <form class="trash" method="POST" action="">
+                                    {% csrf_token %}
+                                    <button class="trash-button" type="submit"><i class="fa fa-trash"></i></button>
+                                </form>                              
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </body>
+
+</html>
+
