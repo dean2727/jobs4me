@@ -7,6 +7,7 @@ from django.contrib.auth.decorators import login_required
 
 from .models import *
 from .forms import CreateUserForm, UploadResumeForm
+import os
 
 from jobs4me.resume_parser.extract_data import getResumeKeywords 
 
