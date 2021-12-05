@@ -5,119 +5,8 @@
         <title>Jobs4Me | Dashboard</title>
         <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css" integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
-        <!-- {% load static %}
-        <link rel="stylesheet" type="text/css" href="{% static 'jobs4me/dashboard_style.css' %}"> -->
-        <style>
-            .gray-div {
-                background-color: #DFDFDF;
-                border-radius: 20px;
-                padding-top: 2%;
-                padding-left: 4%;
-                padding-right: 4%;
-                padding-bottom: 2%;
-            }
-
-            .div-header {
-                text-align: center;
-            }
-
-            #title-container {
-                padding: 1% 2% 1%;
-            }
-
-            .page-greeting {
-                text-align: center;
-                padding-top: 20px;
-                display: inline;
-                margin-left: 36%;
-            }
-
-            .logout-button {
-                cursor: pointer;
-                padding: 7px 12px 7px;
-                background-color: #0B77DB;
-                color: white;
-                border: 3px solid black;
-                border-radius: 10px;
-                margin-right: 2px;
-                float: right;
-                margin-bottom: 20px;
-            }
-
-            #my-resumes-container {
-                margin-top: 4%;
-            }
-
-            #resume-upload-div {
-                background-color: #0b90db;
-                border: 2px solid black;
-                border-radius: 20px;
-                padding-top: 2%;
-                padding-left: 5%;
-                color: white;
-                padding-right: 5%;
-                text-align: center;
-                padding-bottom: 2%;
-                margin-top: 7%;
-            }
-
-            .submit-input {
-                padding: 7px 12px 7px;
-                background-color: white;
-                border: 2px solid black;
-                border-radius: 10px;
-                cursor: pointer;
-            }
-            
-            .dot {
-                background-color: #0b90db;
-                height: 40px;
-                width: 40px;
-                border-radius: 50%;
-                display: inline-block;
-                text-align: center;
-                color: white;
-                padding-top: 8px;
-            }
-
-            .resume-name, .resume-file-name {
-                display: inline;
-            }
-
-            .resume-name {
-                margin-left: 2%;
-            }
-
-            .resume-file-name {
-                margin-left: 5%;
-                font-size: 10px;
-            }
-
-            .resume-row {
-                background-color: white;
-                padding-left: 2%;
-                padding-top: 2%;
-                padding-right: 2%;
-                padding-bottom: 2%;
-                margin-top: 2%;
-            }
-
-            .trash {
-                display: inline;
-                float: right;
-            }
-
-            .trash-button {
-                background-color: transparent;
-                border-color: #ebebeb;
-                cursor: pointer;
-            }
-
-            .fa-trash {
-                width: 20px;
-                height: 20px;
-            }
-        </style>
+        {% load static %}
+        <link rel="stylesheet" type="text/css" href="{% static 'jobs4me/dashboard.css' %}">
     </head>
     
     <body>
@@ -135,8 +24,10 @@
                             <b>Name: </b>{{user_name}}<br>
                             <b>Email: </b>{{email}}<br>
                             <b>Phone number: </b>{{phone_number}}<br>
-                            <b>Address: </b>{{address}}<br>
-                            <b>Additional comments: </b>{{ additional_comments }}
+                            <b>Location: </b>{{address}}<br>
+                            {% if additional_comments %}
+                                <b>Additional comments: </b>{{ additional_comments }}
+                            {% endif %}
                         </p>
                     </div>
                 </div>
@@ -153,6 +44,10 @@
                 </div>
             </div>
         </div>
+
+        {% for message in messages %}
+            <p class="status-message">{{ message }}</p>
+        {% endfor %}
         
         <div id="my-resumes-container" class="container">
             <div class="row">
@@ -166,6 +61,7 @@
                                 <p class="resume-file-name">{{ resume.resume_file }}</p>
                                 <form class="trash" method="POST" action="">
                                     {% csrf_token %}
+                                    <input type="hidden" name="delete-resume" value="{{ resume.resume_file }}">
                                     <button class="trash-button" type="submit"><i class="fa fa-trash"></i></button>
                                 </form>                              
                             </div>

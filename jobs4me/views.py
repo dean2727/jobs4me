@@ -9,8 +9,15 @@ from .models import *
 from .forms import CreateUserForm, UploadResumeForm
 import os
 
-from jobs4me.resume_parser.extract_data import getResumeKeywords
-from jobs4me.job_parser.scraper import add_job_records
+from jobs4me.ML_NLP import *
+from jobs4me.notifications.send_sms import sendSms
+
+# match resumes of current user to the jobs (scraped from Indeed), finding suitable jobs
+def matchResumesToJobs(user):
+    resumes = Resume.objects.filter(user=user)
+    for resume in resumes:
+        pass
+    pass
 
 def adminTest(request):
     if not request.user.is_superuser:
@@ -31,9 +38,11 @@ def adminTest(request):
                     post_age=r[5],
                     url=r[6]
                 )
-                new_job.save()                
+                new_job.save()
         elif option == "resume":
-            print("DEBUG: resume")
+            matchResumesToJobs(request.user)
+        else:
+            sendSms("Hello World!", request.POST['sms-number'])
     return render(request, 'jobs4me/admin_test.html')
 
 def registerPage(request):
@@ -78,18 +87,28 @@ def logoutUser(request):
 @login_required(login_url='jobs4me:login')
 def home(request):
     if request.method == "POST":
-        form = UploadResumeForm(request.POST, request.FILES)
+        # user deleted resume
+        if request.POST.get("delete-resume"):
+            deleted_resume = Resume.objects.filter(resume_file=request.POST.get("delete-resume"))[0]
+            deleted_resume.delete()
+            messages.success(request, 'Resume \'' + deleted_resume.name + '\' was deleted!')
 
-        # resume is valid iff a resume was actually uploaded and the form that posted the request has enctype="multipart/form-data"
-        if form.is_valid():
-            resume = Resume(
-                username=request.user,
-                name=request.POST['name'],
-                resume_file=request.FILES['resume_file']
-            )
+        # user uploaded new resume
+        else:
+            form = UploadResumeForm(request.POST, request.FILES)
 
-            # save resume to the path specified in "upload_to"
-            resume.save()
+            # resume is valid iff a resume was actually uploaded and the form that posted the request has enctype="multipart/form-data"
+            if form.is_valid():
+                resume = Resume(
+                    username=request.user,
+                    name=request.POST['name'],
+                    resume_file=request.FILES['resume_file']
+                )
+
+                # save resume to the path specified in "upload_to"
+                resume.save()
+
+                messages.success(request, 'Resume \'' + resume.name + '\' added!')
     
     # get customer info and resumes from db, put it in context to pass to page
     # request.user should hold our username
