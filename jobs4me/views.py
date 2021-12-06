@@ -91,6 +91,7 @@ def home(request):
         if request.POST.get("delete-resume"):
             deleted_resume = Resume.objects.filter(resume_file=request.POST.get("delete-resume"))[0]
             deleted_resume.delete()
+            os.remove(str(deleted_resume.resume_file))
             messages.success(request, 'Resume \'' + deleted_resume.name + '\' was deleted!')
 
         # user uploaded new resume

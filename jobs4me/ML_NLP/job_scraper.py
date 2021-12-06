@@ -93,6 +93,7 @@ def add_job_records(position, location, n, records):
         except AttributeError:
             return records
     
+
 '''
 records = []
 records = add_job_records('robotics engineer', '', 20, records)
@@ -102,6 +103,7 @@ records = add_job_records('electrical engineer', '', 20, records)
 records = add_job_records('data science', '', 20, records)
 records = add_job_records('machine learning', '', 20, records)
 
+# Write to .txt file method (via output redirect >)
 print("100 jobs from all over the US:")
 print("1st batch of 20 = \'robotics engineer\'")
 print("2nd batch of 20 = \'software engineer\'")
@@ -119,4 +121,10 @@ for r in records:
     print("Posted: " + r[5])
     print("URL: " + r[6])
     i += 1
+
+# Write to csv method
+with open('jobs.csv', 'w', newline='', encoding='utf-8') as f:
+    writer = csv.writer(f)
+    writer.writerow(['title', 'company', 'job_desc', 'salary', 'location', 'date_posted', 'url'])
+    writer.writerows(records)
 '''
