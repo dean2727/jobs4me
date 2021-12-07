@@ -154,7 +154,7 @@ def home(request):
             deleted_resume = Resume.objects.filter(resume_file=request.POST.get("delete-resume"))[0]
             deleted_resume.delete()
 
-            # update directory/file data locations which contained that resume
+            # update directory/file data locations which contained that resumea
             os.remove(str(deleted_resume.resume_file))
             resumeDataToCsv(request.user, "user")
 
