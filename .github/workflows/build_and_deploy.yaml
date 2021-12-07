@@ -9,7 +9,7 @@ on:
       - master
 
 env:
-  WEBAPP_NAME: 'my-python-app'  # Replace with the name of your Azure web app
+  WEBAPP_NAME: 'jobs4me'
 
 jobs:
   build-and-test:
