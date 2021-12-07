@@ -1,13 +1,19 @@
 <form method="POST" action="">
     {% csrf_token %}
     <input type="radio" name="option" value="scrape">
-    <label>Press me to scrape jobs and populate the database!</label><br>
+    <label>Press to scrape jobs and populate the database!</label><br>
 
     <input type="radio" name="option" value="resume">
-    <label>Press me to test resume matching with a dummy resume!</label><br>
+    <label>Press to test resume matching with a dummy resume!</label><br>
 
     <input type="text" name="sms-number">
-    <label>Or enter phone number to check SMS sending with Hello World!</label>
+    <label>Enter phone number to check SMS sending with Hello World!</label><br>
     
+    <input type="radio" name="option" value="resumes-csv">
+    <label>Press to read through all resumes of all users and populate data to a csv</label><br>
+
+    <input type="radio" name="option" value="resumes-csv-user">
+    <label>Press to read through all resumes of logged in user and populate data to a csv</label><br>
+
     <input type="submit">
 </form>

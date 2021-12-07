@@ -8,6 +8,8 @@ from django.contrib.auth.decorators import login_required
 from .models import *
 from .forms import CreateUserForm, UploadResumeForm
 import os
+import csv
+import shutil
 
 from jobs4me.ML_NLP import *
 from jobs4me.notifications.send_sms import sendSms
@@ -19,12 +21,68 @@ def matchResumesToJobs(user):
         pass
     pass
 
+# write csv data for either all users (mode = "admin") or the logged in user (mode = "user")
+def resumeDataToCsv(user, mode):
+    if mode == "user":
+        username = str(user)
+        if os.path.exists('jobs4me/user_csvs/user_' + username):
+            cmd = 'rm -rfv jobs4me/user_csvs/user_' + username
+            os.system(cmd)
+        
+        os.mkdir('jobs4me/user_csvs/user_' + username)
+        os.mkdir('jobs4me/user_csvs/user_' + username + '/resumes')
+
+        fid = open('jobs4me/user_csvs/user_' + username + '/resumes_data.csv', 'w', newline='', encoding='utf-8')
+        writer = csv.writer(fid)
+        writer.writerow(['username', 'name', 'email', 'gpa', 'file_name'])
+
+        resumes = Resume.objects.filter(username=user)
+        for resume in resumes:
+            file_name = str(resume.resume_file).split("/")[2]
+            record = [username, user.name, user.email, user.gpa, file_name]
+            writer.writerow(record)
+
+            src = str(resume.resume_file)
+            dst = 'jobs4me/user_csvs/user_' + username + '/resumes'
+            shutil.copy(src, dst)
+
+        fid.close()
+
+    elif mode == "admin":
+        if os.path.exists('jobs4me/user_csvs'):
+            cmd = 'rm -rfv jobs4me/user_csvs'
+            os.system(cmd)
+            os.mkdir('jobs4me/user_csvs')
+
+        users = AppUser.objects.all()
+        for user in users:
+            username = user.username
+            os.mkdir('jobs4me/user_csvs/user_' + username)
+            os.mkdir('jobs4me/user_csvs/user_' + username + '/resumes')
+
+            fid = open('jobs4me/user_csvs/user_' + username + '/resumes_data.csv', 'w', newline='', encoding='utf-8') 
+            writer = csv.writer(fid)
+            writer.writerow(['username', 'name', 'email', 'gpa', 'file_name'])
+
+            resumes = Resume.objects.filter(username=user)
+            for resume in resumes:
+                file_name = str(resume.resume_file).split("/")[2]
+                record = [user.username, user.name, user.email, user.gpa, file_name]
+                writer.writerow(record)
+
+                src = str(resume.resume_file)
+                dst = 'jobs4me/user_csvs/user_' + username + '/resumes'
+                shutil.copy(src, dst)
+            
+            fid.close()
+
 def adminTest(request):
     if not request.user.is_superuser:
         return redirect('jobs4me:login')
 
     if request.method == "POST":
         option = request.POST.get('option')
+        print(option)
         if option == "scrape":
             records = []
             #records = add_job_records('robotics engineer', '', 20, records)
@@ -41,8 +99,12 @@ def adminTest(request):
                 new_job.save()
         elif option == "resume":
             matchResumesToJobs(request.user)
-        else:
+        elif option == "sms-number":
             sendSms("Hello World!", request.POST['sms-number'])
+        elif option == "resumes-csv":
+            resumeDataToCsv(request.user, "admin")
+        elif option == "resumes-csv-user":
+            resumeDataToCsv(request.user, "user")
     return render(request, 'jobs4me/admin_test.html')
 
 def registerPage(request):
@@ -91,7 +153,11 @@ def home(request):
         if request.POST.get("delete-resume"):
             deleted_resume = Resume.objects.filter(resume_file=request.POST.get("delete-resume"))[0]
             deleted_resume.delete()
+
+            # update directory/file data locations which contained that resume
             os.remove(str(deleted_resume.resume_file))
+            resumeDataToCsv(request.user, "user")
+
             messages.success(request, 'Resume \'' + deleted_resume.name + '\' was deleted!')
 
         # user uploaded new resume
@@ -105,9 +171,9 @@ def home(request):
                     name=request.POST['name'],
                     resume_file=request.FILES['resume_file']
                 )
-
-                # save resume to the path specified in "upload_to"
                 resume.save()
+
+                resumeDataToCsv(request.user, "user")
 
                 messages.success(request, 'Resume \'' + resume.name + '\' added!')
     
