@@ -22,7 +22,7 @@ from jobs4me.notifications.send_sms import *
 # match latest resume of current user to the top 5 highest chance jobs (scraped from Indeed), finding suitable jobs
 def matchResumeToJobs(user):
     resume_list = 'jobs4me/user_csvs/user_' + str(user) + '/resumes_data.csv'
-    #getSuitableJobs(resume_list, str(user))
+    getSuitableJobs(resume_list, str(user))
 
     with open('jobs4me/user_csvs/user_' + str(user) + '/top_jobs.csv', newline='') as csv_file:
         reader = csv.DictReader(csv_file)
