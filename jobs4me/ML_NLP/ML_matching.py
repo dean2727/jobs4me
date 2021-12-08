@@ -10,8 +10,7 @@ from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.feature_extraction.text import CountVectorizer
 from gensim.summarization.textcleaner import split_sentences
 
-resume_list = sys.argv[1]
-jobs_list = sys.argv[2]
+from jobs4me.models import *
 
 def unique_sentence(seq):
     seen = set()
@@ -25,18 +24,19 @@ def summary(x, perc):
         test_summary = x
     return test_summary
 
-def main():
+def getSuitableJobs(resume_list, username):
+    jobs_list = "jobs4me/ML_NLP/jobs_extracted.csv"
     resume_list_data = pd.read_csv(resume_list)
     email_array = resume_list_data[{'name', 'email', 'gpa', 'file_name'}].to_numpy()
     projectDict = {}
     element = 0
-    os.system("rm -rfv recommendation_output")
-    os.system("mkdir recommendation_output")
+    # os.system("rm -rfv recommendation_output")
+    # os.system("mkdir recommendation_output")
     for entry in email_array:
         jobs_list_data = pd.read_csv(jobs_list)
         for column in entry:
             if str(column).find(".pdf") != -1:
-                file_location = 'resume_data/resumes/' + str(column)
+                file_location = 'jobs4me/user_csvs/user_' + username + '/resumes/' + str(column)
                 resume = extract_text(file_location)
                 text_resume = str(resume)
                 summarize(text_resume, ratio=1)
@@ -93,15 +93,11 @@ def main():
         jobs_list_data2 = jobs_list_data2.head(5)
         answer_array = np.array(jobs_list_data2)
 
-        #write to csv file the output
-        write_filename = "recommendation_output/" + email + ".csv"
-        fields = ['job title', 'company name', 'keywords', 'competitiveness', 'description', 'match Percentage']
+        # write the top jobs to the user's csv directory
+        write_filename = "jobs4me/user_csvs/user_" + username + "/top_jobs.csv"
+        fields = ['job title', 'company name', 'keywords', 'competitiveness', 'description', 'match percentage']
         with open(write_filename, 'w') as csvfile:
             csvwriter = csv.writer(csvfile)
             csvwriter.writerow(fields)
             csvwriter.writerows(answer_array)
         csvfile.close()
-
-
-if __name__=="__main__":
-    main()

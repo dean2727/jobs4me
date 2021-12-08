@@ -12,14 +12,17 @@ import os
 import csv
 import shutil
 
-from jobs4me.ML_NLP import *
-from jobs4me.notifications.send_sms import *
+from jobs4me.ML_NLP.extract_keyword import extractKeywords
+from jobs4me.ML_NLP.extract_keyword_admin import getResumeKeywords
+from jobs4me.ML_NLP.ML_matching import getSuitableJobs
+from jobs4me.ML_NLP.job_scraper import scrapeJobs
 from jobs4me.notifications.send_notif import *
+from jobs4me.notifications.send_sms import *
 
 # match latest resume of current user to the top 5 highest chance jobs (scraped from Indeed), finding suitable jobs
 def matchResumeToJobs(user):
-    latest_resume = Resume.objects.filter(user=user)[-1]
-    getSuitableJobs(latest_resume)  # Souryendu's code, which will do the ML matching and put the resulting csv into the appropriate directory
+    resume_list = 'jobs4me/user_csvs/user_' + str(user) + '/resumes_data.csv'
+    #getSuitableJobs(resume_list, str(user))
 
     with open('jobs4me/user_csvs/user_' + str(user) + '/top_jobs.csv', newline='') as csv_file:
         reader = csv.DictReader(csv_file)
@@ -27,26 +30,26 @@ def matchResumeToJobs(user):
             candidate_jobs = Job.objects.filter(title=row['job title']).filter(company=row['company name'])
             for job in candidate_jobs:
                 # only add if job isnt already in SuitableJob table
-                if len(SuitableJob.objects.filter(job_id=job.id)) == 0:
+                if len(SuitableJob.objects.filter(job_id=job.id)) != 0:
                     continue
                 new_suitable_job = SuitableJob(
                     username=user,
-                    job_id=job.id
+                    job_id=job
                 )
                 new_suitable_job.save()
 
                 # notify user of job
                 sendSms(str(user), user.name, user.phone_number, job.title, job.url, row['match percentage'])
-                sendPushBulletNotification(
-                    str(user),
-                    "New job from Jobs4Me!",
-                    "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "% of your latest resume! Here are some details:\n" +
-                    "Title: " + job.title + "\n" +
-                    "Company: " + job.company + "\n" + 
-                    "Location: " + job.location + "\n" + 
-                    "URL: " + job.url,
-                    "o.pdFGK55yoK9TZwofCpInnwCotGp4BgGy"
-                )
+                # sendPushBulletNotification(
+                #     str(user),
+                #     "New job from Jobs4Me!",
+                #     "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "% of your latest resume! Here are some details:\n" +
+                #     "Title: " + job.title + "\n" +
+                #     "Company: " + job.company + "\n" + 
+                #     "Location: " + job.location + "\n" + 
+                #     "URL: " + job.url,
+                #     "o.pdFGK55yoK9TZwofCpInnwCotGp4BgGy"
+                # )
 
 # write csv data for either all users (mode = "admin") or the logged in user (mode = "user")
 def resumeDataToCsv(user, mode):
@@ -111,23 +114,37 @@ def adminTest(request):
     if request.method == "POST":
         option = request.POST.get('option')
         if option == "scrape":
-            records = []
-            records = add_job_records('robotics engineer', '', 20, records)
-            records = add_job_records('software engineer', '', 20, records)
-            records = add_job_records('electrical engineer', '', 20, records)
-            records = add_job_records('data science', '', 20, records)
-            records = add_job_records('machine learning', '', 20, records)
-            for r in records:
-                new_job = Job(
-                    title=r[0],
-                    company=r[1],
-                    description=r[2],
-                    salary_range=r[3],
-                    location=r[4],
-                    post_age=r[5],
-                    url=r[6]
-                )
-                new_job.save()
+            # temporary database population with the jobs.csv that contains hand labeled data (would later replace with a job scraper call)
+            with open('jobs4me/ML_NLP/jobs.csv', newline='') as csv_file:
+                reader = csv.DictReader(csv_file)
+                for row in reader:
+                    new_job = Job(
+                        title=row['title'],
+                        company=row['company'],
+                        description=row['job_desc'],
+                        salary_range=row['salary'],
+                        location=row['location'],
+                        post_age=row['date_posted'],
+                        url=row['url']
+                    )
+                    new_job.save()
+
+            # later code for populating database with a job scraper call
+            # job_types = ['robotics engineer', 'software engineer', 'machine learning', 'data science', 'electrical engineer']
+            # records = scrapeJobs(job_types)
+            # for r in records:
+            #     new_job = Job(
+            #         title=r[0],
+            #         company=r[1],
+            #         description=r[2],
+            #         salary_range=r[3],
+            #         location=r[4],
+            #         post_age=r[5],
+            #         url=r[6]
+            #     )
+            #     new_job.save()
+        elif option == "job-extract":
+            extractKeywords()
         elif option == "resume":
             matchResumeToJobs(request.user)
         elif option == "resumes-csv":
