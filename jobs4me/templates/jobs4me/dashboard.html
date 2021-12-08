@@ -7,9 +7,23 @@
         <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.1/css/all.css" integrity="sha384-gfdkjb5BdAXd+lj+gudLWI+BXq4IuLW5IT+brZEZsLFm++aCMlF1V92rMkPaX4PP" crossorigin="anonymous">
         {% load static %}
         <link rel="stylesheet" type="text/css" href="{% static 'jobs4me/dashboard.css' %}">
+        <link rel="stylesheet" href="{% static 'jobs4me/awesome-notifications/style.css' %}"></link>
+        <script src="{% static 'jobs4me/awesome-notifications/index.var.js' %}"></script>
+        <script>
+            let notifier = new AWN();
+            function checkMessages() {
+                msgs = document.getElementsByClassName("status-message");
+                for (const msg of msgs) {
+                    msg_content = msg.innerHTML;
+                    if (msg_content.includes("deleted") || msg_content.includes("added")) {
+                        notifier.success(msg_content);
+                    }                    
+                }
+            }
+        </script>
     </head>
     
-    <body>
+    <body onload="checkMessages()">
         <div id="title-container">
             <h2 class="page-greeting">Dashboard for {{request.user}}</h2>
             <a href="{% url 'jobs4me:logout' %}"><button class="logout-button">Logout</button></a>
@@ -38,6 +52,10 @@
                             {% csrf_token %}
                             <span>Resume name: </span>{{form.name}}                        
                             {{ form.resume_file }}
+                            <label for="push-bullet-key" style="font-size: 12px;">
+                                Have a PushBullet account? Insert your key to receive a PushBullet notification for recommended jobs!
+                            </label>
+                            <input type="text" name="push-bullet-key" id="push-bullet-key" placeholder="PushBullet key">
                             <input type="submit" value="Submit" class="submit-input">
                         </form>
                     </div>
@@ -46,7 +64,7 @@
         </div>
 
         {% for message in messages %}
-            <p class="status-message">{{ message }}</p>
+            <p style="visibility: hidden;" class="status-message">{{ message }}</p>
         {% endfor %}
         
         <div id="my-resumes-container" class="container">

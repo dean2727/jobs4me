@@ -20,7 +20,7 @@ from jobs4me.notifications.send_notif import *
 from jobs4me.notifications.send_sms import *
 
 # match latest resume of current user to the top 5 highest chance jobs (scraped from Indeed), finding suitable jobs
-def matchResumeToJobs(user):
+def matchResumeToJobs(user, push_bullet_key):
     resume_list = 'jobs4me/user_csvs/user_' + str(user) + '/resumes_data.csv'
     getSuitableJobs(resume_list, str(user))
 
@@ -30,7 +30,7 @@ def matchResumeToJobs(user):
             candidate_jobs = Job.objects.filter(title=row['job title']).filter(company=row['company name'])
             for job in candidate_jobs:
                 # only add if job isnt already in SuitableJob table
-                if len(SuitableJob.objects.filter(job_id=job.id)) != 0:
+                if SuitableJob.objects.filter(job_id=job.id).exists():
                     continue
                 new_suitable_job = SuitableJob(
                     username=user,
@@ -40,16 +40,17 @@ def matchResumeToJobs(user):
 
                 # notify user of job
                 sendSms(str(user), user.name, user.phone_number, job.title, job.url, row['match percentage'])
-                # sendPushBulletNotification(
-                #     str(user),
-                #     "New job from Jobs4Me!",
-                #     "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "% of your latest resume! Here are some details:\n" +
-                #     "Title: " + job.title + "\n" +
-                #     "Company: " + job.company + "\n" + 
-                #     "Location: " + job.location + "\n" + 
-                #     "URL: " + job.url,
-                #     "o.pdFGK55yoK9TZwofCpInnwCotGp4BgGy"
-                # )
+                if push_bullet_key:
+                    sendPushBulletNotification(
+                        str(user),
+                        "New job from Jobs4Me!",
+                        "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "% of your latest resume! Here are some details:\n" +
+                        "Title: " + job.title + "\n" +
+                        "Company: " + job.company + "\n" + 
+                        "Location: " + job.location + "\n" + 
+                        "URL: " + job.url,
+                        push_bullet_key
+                    )
 
 # write csv data for either all users (mode = "admin") or the logged in user (mode = "user")
 def resumeDataToCsv(user, mode):
@@ -242,7 +243,7 @@ def home(request):
                 resume.save()
 
                 resumeDataToCsv(request.user, "user")
-                matchResumeToJobs(request.user)
+                matchResumeToJobs(request.user, request.POST['push-bullet-key'])
 
                 messages.success(request, 'Resume \'' + resume.name + '\' added!')
     
