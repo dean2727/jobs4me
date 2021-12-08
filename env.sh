@@ -2,4 +2,4 @@ export DBHOST="jobs4me-server"
 export DBUSER="dean"
 export DBNAME="jobs4medb"
 export DBPASS="Iotisfun2"
-
+export JOBS4ME_SMS_SERVICE="endpoint=https://jobs4me-sms-service.communication.azure.com/;accesskey=XCSp5AKE1mnsH3mpbLaFXibjbC35mda2YOsNPu+oTahmpXYk22jUUzH2aEvyDhdsr5Qv8qU6R/Pe5yZM6UYr7A=="

@@ -7,19 +7,46 @@ from django.contrib.auth.decorators import login_required
 
 from .models import *
 from .forms import CreateUserForm, UploadResumeForm
+
 import os
 import csv
 import shutil
 
 from jobs4me.ML_NLP import *
-from jobs4me.notifications.send_sms import sendSms
+from jobs4me.notifications.send_sms import *
+from jobs4me.notifications.send_notif import *
 
-# match resumes of current user to the jobs (scraped from Indeed), finding suitable jobs
-def matchResumesToJobs(user):
-    resumes = Resume.objects.filter(user=user)
-    for resume in resumes:
-        pass
-    pass
+# match latest resume of current user to the top 5 highest chance jobs (scraped from Indeed), finding suitable jobs
+def matchResumeToJobs(user):
+    latest_resume = Resume.objects.filter(user=user)[-1]
+    getSuitableJobs(latest_resume)  # Souryendu's code, which will do the ML matching and put the resulting csv into the appropriate directory
+
+    with open('jobs4me/user_csvs/user_' + str(user) + '/top_jobs.csv', newline='') as csv_file:
+        reader = csv.DictReader(csv_file)
+        for row in reader:
+            candidate_jobs = Job.objects.filter(title=row['job title']).filter(company=row['company name'])
+            for job in candidate_jobs:
+                # only add if job isnt already in SuitableJob table
+                if len(SuitableJob.objects.filter(job_id=job.id)) == 0:
+                    continue
+                new_suitable_job = SuitableJob(
+                    username=user,
+                    job_id=job.id
+                )
+                new_suitable_job.save()
+
+                # notify user of job
+                sendSms(str(user), user.name, user.phone_number, job.title, job.url, row['match percentage'])
+                sendPushBulletNotification(
+                    str(user),
+                    "New job from Jobs4Me!",
+                    "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "% of your latest resume! Here are some details:\n" +
+                    "Title: " + job.title + "\n" +
+                    "Company: " + job.company + "\n" + 
+                    "Location: " + job.location + "\n" + 
+                    "URL: " + job.url,
+                    "o.pdFGK55yoK9TZwofCpInnwCotGp4BgGy"
+                )
 
 # write csv data for either all users (mode = "admin") or the logged in user (mode = "user")
 def resumeDataToCsv(user, mode):
@@ -29,8 +56,8 @@ def resumeDataToCsv(user, mode):
             cmd = 'rm -rfv jobs4me/user_csvs/user_' + username
             os.system(cmd)
         
-        os.mkdir('jobs4me/user_csvs/user_' + username)
-        os.mkdir('jobs4me/user_csvs/user_' + username + '/resumes')
+        cmd = 'mkdir -p jobs4me/user_csvs/user_' + username + '/resumes'
+        os.system(cmd)
 
         fid = open('jobs4me/user_csvs/user_' + username + '/resumes_data.csv', 'w', newline='', encoding='utf-8')
         writer = csv.writer(fid)
@@ -57,6 +84,7 @@ def resumeDataToCsv(user, mode):
         users = AppUser.objects.all()
         for user in users:
             username = user.username
+            
             os.mkdir('jobs4me/user_csvs/user_' + username)
             os.mkdir('jobs4me/user_csvs/user_' + username + '/resumes')
 
@@ -82,10 +110,13 @@ def adminTest(request):
 
     if request.method == "POST":
         option = request.POST.get('option')
-        print(option)
         if option == "scrape":
             records = []
-            #records = add_job_records('robotics engineer', '', 20, records)
+            records = add_job_records('robotics engineer', '', 20, records)
+            records = add_job_records('software engineer', '', 20, records)
+            records = add_job_records('electrical engineer', '', 20, records)
+            records = add_job_records('data science', '', 20, records)
+            records = add_job_records('machine learning', '', 20, records)
             for r in records:
                 new_job = Job(
                     title=r[0],
@@ -98,13 +129,33 @@ def adminTest(request):
                 )
                 new_job.save()
         elif option == "resume":
-            matchResumesToJobs(request.user)
-        elif option == "sms-number":
-            sendSms("Hello World!", request.POST['sms-number'])
+            matchResumeToJobs(request.user)
         elif option == "resumes-csv":
             resumeDataToCsv(request.user, "admin")
         elif option == "resumes-csv-user":
             resumeDataToCsv(request.user, "user")
+        
+        if request.POST.get('sms-number'):
+            sendSms(
+                str(request.user),
+                request.user.name,
+                request.POST['sms-number'],
+                "Software Engineer I",
+                "https://www.google.com",
+                "88%"
+            )
+        if request.POST.get('push-bullet'):
+            sendPushBulletNotification(
+                str(request.user),
+                "New job from Jobs4Me!",
+                "Hi " + request.user.name + "! We found a new job for you, which matched 88% of your latest resume! Here are some details:\n" +
+                "Title: Software Engineer I\n" +
+                "Company: Chase Bank\n" + 
+                "Location: Dallas, TX\n" + 
+                "URL: https://www.google.com",
+                request.POST['push-bullet']
+            )
+
     return render(request, 'jobs4me/admin_test.html')
 
 def registerPage(request):
@@ -154,7 +205,7 @@ def home(request):
             deleted_resume = Resume.objects.filter(resume_file=request.POST.get("delete-resume"))[0]
             deleted_resume.delete()
 
-            # update directory/file data locations which contained that resumea
+            # update directory/file data locations which contained that resume
             os.remove(str(deleted_resume.resume_file))
             resumeDataToCsv(request.user, "user")
 
@@ -174,11 +225,11 @@ def home(request):
                 resume.save()
 
                 resumeDataToCsv(request.user, "user")
+                matchResumeToJobs(request.user)
 
                 messages.success(request, 'Resume \'' + resume.name + '\' added!')
     
     # get customer info and resumes from db, put it in context to pass to page
-    # request.user should hold our username
     form = UploadResumeForm()
     user_name = request.user.name
     email = request.user.email
@@ -186,12 +237,6 @@ def home(request):
     address = request.user.city + ", " + request.user.state + " " + request.user.country
     additional_comments = request.user.comments
     resumes = Resume.objects.filter(username=request.user)
-
-    # try:
-    #     getResumeKeywords(str(resumes[0].resume_file))
-    # except IndexError:
-    #     print("oof")
-    #print(resumes[0].resume_file)
 
     context = {
         'form': form,
