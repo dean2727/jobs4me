@@ -94,7 +94,7 @@ def getSuitableJobs(resume_list, username):
         answer_array = np.array(jobs_list_data2)
 
         # write the top jobs to the user's csv directory
-        write_filename = "jobs4me/user_csvs/user_" + username + "/top_jobs.csv"
+        write_filename = "jobs4me/user_csvs/user_" + username + "/top_jobs_" + str(comment_idx) + ".csv"
         fields = ['job title', 'company name', 'keywords', 'competitiveness', 'description', 'match percentage']
         with open(write_filename, 'w') as csvfile:
             csvwriter = csv.writer(csvfile)

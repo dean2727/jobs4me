@@ -26,7 +26,10 @@
     <body onload="checkMessages()">
         <div id="title-container">
             <h2 class="page-greeting">Dashboard for {{request.user}}</h2>
-            <a href="{% url 'jobs4me:logout' %}"><button class="logout-button">Logout</button></a>
+            <a href="{% url 'jobs4me:logout' %}"><button class="blue-button">Logout</button></a>
+            {% if is_super %}
+                <a href="{% url 'jobs4me:admin-portal' %}"><button class="blue-button">Admin Portal</button></a>
+            {% endif %}
         </div>
         
         <div id="top-section-container" class="container">
