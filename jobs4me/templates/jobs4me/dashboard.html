@@ -35,8 +35,8 @@
         <div id="top-section-container" class="container">
             <div class="row">
                 <div class="col-sm-8">
-                    <div class="gray-div">
-                        <h4 class="div-header">My information</h4>
+                    <div class="white-div info">
+                        <h4 class="div-header">Your information</h4>
                         <p>
                             <b>Name: </b>{{user_name}}<br>
                             <b>Email: </b>{{email}}<br>
@@ -53,8 +53,11 @@
                         <h4 class="div-header">Upload new resume</h4>
                         <form method="POST" enctype="multipart/form-data">
                             {% csrf_token %}
-                            <span>Resume name: </span>{{form.name}}                        
-                            {{ form.resume_file }}
+                            <span>Resume name: </span>{{ form.name }}
+                            <label class="custom-file-upload">
+                                Upload from computer
+                                {{ form.resume_file }}
+                            </label>
                             <label for="push-bullet-key" style="font-size: 12px;">
                                 Have a PushBullet account? Insert your key to receive a PushBullet notification for recommended jobs!
                             </label>
@@ -73,22 +76,65 @@
         <div id="my-resumes-container" class="container">
             <div class="row">
                 <div class="col">
-                    <div class="gray-div">
-                        <h4 class="div-header">My resumes</h4>
-                        {% for resume in resumes %}
-                            <div class="resume-row">
-                                <span class="dot">{{ forloop.counter }}</span>
-                                <h5 class="resume-name">{{ resume.name }}</h5>
-                                <p class="resume-file-name">{{ resume.resume_file }}</p>
-                                <form class="trash" method="POST" action="">
-                                    {% csrf_token %}
-                                    <input type="hidden" name="delete-resume" value="{{ resume.resume_file }}">
-                                    <button class="trash-button" type="submit"><i class="fa fa-trash"></i></button>
-                                </form>                              
-                            </div>
-                        {% endfor %}
+                    <div class="white-div">
+                        {% if resumes %}
+                            <h4 class="div-header">Your resumes</h4>
+                            {% for resume in resumes %}
+                                <div class="resume-row">
+                                    <span class="dot">{{ forloop.counter }}</span>
+                                    <h5 class="resume-name">Resume name: {{ resume.name }}</h5>
+                                    <p class="resume-file-name">Resume path: {{ resume.resume_file }}</p>
+                                    <form class="trash" method="POST" action="">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="delete-resume" value="{{ resume.resume_file }}">
+                                        <button class="trash-button" type="submit"><i class="fa fa-trash"></i></button>
+                                    </form>                              
+                                </div>
+                            {% endfor %}
+                        {% else %}
+                            <h4 class="div-header">No resumes uploaded</h4>
+                        {% endif %}
                     </div>
                 </div>
+            </div>
+        </div>
+
+        <div id="my-jobs-div">
+            <div class="container">
+                <div class="row">
+                    <div class="col">
+                        <div class="white-div header">                
+                            {% if suitable_jobs %}
+                                <h4 class="div-header">Your matched jobs</h4>
+                            {% else %}
+                                <h4 class="div-header">You have no matching jobs at this time</h4>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="container">
+                {% for sj in suitable_jobs %}
+                    {% if not forloop.counter|divisibleby:2 %}
+                    <div class="row">
+                    {% endif %}
+                        <div class="col-6">
+                            <div class="white-div-2">
+                                <h5><i class="fas fa-briefcase"></i>  {{ sj.job_id.title }}</h5>
+                                <p><i class="fas fa-building"></i>  {{ sj.job_id.company }}</p> 
+                                {% if sj.job_id.salary_range %}
+                                    <p><i class="fas fa-money-bill-alt"></i> {{ sj.job_id.salary_range }}</p>     
+                                {% else %}
+                                    <p>No salary information available</p>
+                                {% endif %}
+                                <a href="{{ sj.job_id.url }}"><button class="job-posting-button">See job posting <i class="fas fa-external-link-alt"></i></button></a>
+                                <p>Location: {{ sj.job_id.location }}</p>
+                            </div>
+                        </div>        
+                    {% if forloop.counter|divisibleby:2 %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
             </div>
         </div>
     </body>

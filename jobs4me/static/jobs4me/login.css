@@ -5,9 +5,18 @@ html {
     height: 100%;
     background: #e5e5e5 !important;
 }
+
+a {
+    color: #7cb4ef;
+}
+a:hover {
+    color: #5097e5;
+}
+
 .user_card {
     width: 350px;
-    margin-top: auto;
+    margin-top: 3%;
+    height: 375px;
     margin-bottom: auto;
     background: #4f4b4b;
     position: relative;
@@ -60,4 +69,9 @@ html {
     color: #fff;
     padding: 10px;
     margin-top: 10px;
+}
+
+#welcome-div {
+    text-align: center;
+    padding-top: 25px;
 }

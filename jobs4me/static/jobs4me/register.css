@@ -5,6 +5,14 @@ html {
     height: 100%;
     background: #e5e5e5 !important;
 }
+
+a {
+    color: #7cb4ef;
+}
+a:hover {
+    color: #5097e5;
+}
+
 .user_card {
     width: 500px;
     margin-top: auto;
@@ -55,4 +63,8 @@ html {
 .input_pass:focus {
     box-shadow: none !important;
     outline: 0px !important;
+}
+
+.padded-container {
+    padding: 20px 10px 20px;
 }

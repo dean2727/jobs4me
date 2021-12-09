@@ -6,20 +6,27 @@
         {% load static %}
         <link rel="stylesheet" type="text/css" href="{% static 'jobs4me/dashboard.css' %}">
         <style>
+            body {
+                background-color: #4f4b4b;
+            }
+
             .page-greeting {
                 text-align: center;
                 padding-top: 20px;
                 margin-left: 28%;
+                color: white;
+                text-shadow:5px 5px 10px black;
             }
 
-            .gray-div {
-                background-color: #DFDFDF;
+            .white-div {
+                background-color: white;
                 border-radius: 20px;
                 padding-top: 2%;
                 padding-left: 4%;
                 padding-right: 4%;
                 padding-bottom: 2%;
                 margin-bottom: 4%;
+                box-shadow: -10px 10px 20px grey;
                 text-align: center;
                 margin-left: 50px;
                 margin-right: 50px;
@@ -58,7 +65,7 @@
         </div>
         <div class="row">
             <div class="col">
-                <div class="gray-div">
+                <div class="white-div">
                     <form method="POST" action="">
                         {% csrf_token %}
                         <input type="radio" name="option" value="scrape">

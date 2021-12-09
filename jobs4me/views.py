@@ -24,33 +24,41 @@ def matchResumeToJobs(user, push_bullet_key):
     resume_list = 'jobs4me/user_csvs/user_' + str(user) + '/resumes_data.csv'
     getSuitableJobs(resume_list, str(user))
 
-    with open('jobs4me/user_csvs/user_' + str(user) + '/top_jobs.csv', newline='') as csv_file:
-        reader = csv.DictReader(csv_file)
-        for row in reader:
-            candidate_jobs = Job.objects.filter(title=row['job title']).filter(company=row['company name'])
-            for job in candidate_jobs:
-                # only add if job isnt already in SuitableJob table
-                if SuitableJob.objects.filter(job_id=job.id).exists():
-                    continue
-                new_suitable_job = SuitableJob(
-                    username=user,
-                    job_id=job
-                )
-                new_suitable_job.save()
-
-                # notify user of new suitable job
-                sendSms(str(user), user.name, user.phone_number, job.title, job.url, row['match percentage'])
-                if push_bullet_key:
-                    sendPushBulletNotification(
-                        str(user),
-                        "New job from Jobs4Me!",
-                        "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "% of your latest resume! Here are some details:\n" +
-                        "Title: " + job.title + "\n" +
-                        "Company: " + job.company + "\n" + 
-                        "Location: " + job.location + "\n" + 
-                        "URL: " + job.url,
-                        push_bullet_key
+    i = 0
+    path = 'jobs4me/user_csvs/user_' + str(user) + '/top_jobs_' + str(i) + '.csv'
+    while os.path.exists(path):
+        print(path)
+        with open(path, newline='') as csv_file:
+            reader = csv.DictReader(csv_file)
+            for row in reader:
+                candidate_jobs = Job.objects.filter(title=row['job title']).filter(company=row['company name'])
+                for job in candidate_jobs:
+                    # only add if job isnt already in SuitableJob table
+                    if SuitableJob.objects.filter(job_id=job.id).exists():
+                        continue
+                    new_suitable_job = SuitableJob(
+                        username=user,
+                        job_id=job
                     )
+                    new_suitable_job.save()
+
+                    # notify user of new suitable job
+                    sendSms(str(user), user.name, user.phone_number, job.title, job.company, job.location, row['match percentage'])
+                    if push_bullet_key:
+                        sendPushBulletNotification(
+                            str(user),
+                            "New job from Jobs4Me!",
+                            "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "% of your latest resume! Here are some details:\n" +
+                            "Title: " + job.title + "\n" +
+                            "Company: " + job.company + "\n" + 
+                            "Location: " + job.location + "\n" + 
+                            "URL: " + job.url,
+                            push_bullet_key
+                        )
+
+        i += 1
+        path = 'jobs4me/user_csvs/user_' + str(user) + '/top_jobs_' + str(i) + '.csv'
+
 
 # write csv data for either all users (mode = "admin") or the logged in user (mode = "user")
 def resumeDataToCsv(user, mode):
@@ -257,6 +265,7 @@ def home(request):
     address = request.user.city + ", " + request.user.state + " " + request.user.country
     additional_comments = request.user.comments
     resumes = Resume.objects.filter(username=request.user)
+    suitable_jobs = SuitableJob.objects.filter(username=request.user)
 
     context = {
         'form': form,
@@ -266,6 +275,7 @@ def home(request):
         'address': address,
         'additional_comments': additional_comments,
         'resumes': resumes,
+        'suitable_jobs': suitable_jobs,
         'is_super': request.user.is_superuser
     }
     return render(request, 'jobs4me/dashboard.html', context)
