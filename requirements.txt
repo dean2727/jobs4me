@@ -16,3 +16,4 @@ scikit-learn
 scipy
 fuzzywuzzy
 gensim==3.8.3
+sendgrid
