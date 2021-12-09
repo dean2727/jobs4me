@@ -11,5 +11,5 @@ urlpatterns = [
 
     path('', views.home, name='home'),
 
-    path('admin_test/', views.adminTest, name='admin-test')
+    path('admin_portal/', views.adminTest, name='admin-portal')
 ]
