@@ -99,7 +99,7 @@ def scrapeJobs(job_types):
     for job_type in job_types:
         records = addJobRecords(job_type, '', 20, records)
     
-    with open('jobs.csv', 'w', newline='', encoding='utf-8') as f:
+    with open('jobs_demo.csv', 'w', newline='', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(['title', 'company', 'job_desc', 'salary', 'location', 'date_posted', 'url'])
         writer.writerows(records)

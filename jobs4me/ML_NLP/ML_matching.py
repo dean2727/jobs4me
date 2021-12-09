@@ -27,18 +27,18 @@ def summary(x, perc):
 def getSuitableJobs(resume_list, username):
     jobs_list = "jobs4me/ML_NLP/jobs_extracted.csv"
     resume_list_data = pd.read_csv(resume_list)
-    email_array = resume_list_data[{'name', 'email', 'gpa', 'file_name'}].to_numpy()
+    comments = np.array(resume_list_data['additional_comments'])
+    email_array = resume_list_data[{'name', 'email', 'gpa', 'file_name', 'additional_comments'}].to_numpy()
     projectDict = {}
     element = 0
-    # os.system("rm -rfv recommendation_output")
-    # os.system("mkdir recommendation_output")
+    comment_idx = 0
     for entry in email_array:
         jobs_list_data = pd.read_csv(jobs_list)
         for column in entry:
             if str(column).find(".pdf") != -1:
                 file_location = 'jobs4me/user_csvs/user_' + username + '/resumes/' + str(column)
                 resume = extract_text(file_location)
-                text_resume = str(resume)
+                text_resume = str(resume) + " " + comments[comment_idx]
                 summarize(text_resume, ratio=1)
             if str(column).find("@") != -1:
                 email = str(column)
@@ -57,7 +57,7 @@ def getSuitableJobs(resume_list, username):
         keyword_data = pd.array(jobs_list_data1['Keywords'])
         match_per_array = []
 
-        #cosine similarity part
+        # cosine similarity part
         for i in range(0, len(desc_data)):
             text = str(desc_data[i])
             text = summary(text, i)
@@ -68,7 +68,7 @@ def getSuitableJobs(resume_list, username):
             matchPercentage = round(matchPercentage, 2)
             match_per_array.append(matchPercentage)
 
-        #fuzzywuzzy algorithm part
+        # fuzzywuzzy algorithm part
         str_to_match = text_resume
         str_options = keyword_data
         ratios = process.extract(str_to_match, str_options)
@@ -101,3 +101,5 @@ def getSuitableJobs(resume_list, username):
             csvwriter.writerow(fields)
             csvwriter.writerows(answer_array)
         csvfile.close()
+
+        comment_idx += 1

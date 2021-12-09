@@ -38,7 +38,7 @@ def matchResumeToJobs(user, push_bullet_key):
                 )
                 new_suitable_job.save()
 
-                # notify user of job
+                # notify user of new suitable job
                 sendSms(str(user), user.name, user.phone_number, job.title, job.url, row['match percentage'])
                 if push_bullet_key:
                     sendPushBulletNotification(
@@ -65,12 +65,12 @@ def resumeDataToCsv(user, mode):
 
         fid = open('jobs4me/user_csvs/user_' + username + '/resumes_data.csv', 'w', newline='', encoding='utf-8')
         writer = csv.writer(fid)
-        writer.writerow(['username', 'name', 'email', 'gpa', 'file_name'])
+        writer.writerow(['username', 'name', 'email', 'gpa', 'file_name', 'additional_comments'])
 
         resumes = Resume.objects.filter(username=user)
         for resume in resumes:
             file_name = str(resume.resume_file).split("/")[2]
-            record = [username, user.name, user.email, user.gpa, file_name]
+            record = [username, user.name, user.email, user.gpa, file_name, user.comments]
             writer.writerow(record)
 
             src = str(resume.resume_file)
@@ -94,12 +94,12 @@ def resumeDataToCsv(user, mode):
 
             fid = open('jobs4me/user_csvs/user_' + username + '/resumes_data.csv', 'w', newline='', encoding='utf-8') 
             writer = csv.writer(fid)
-            writer.writerow(['username', 'name', 'email', 'gpa', 'file_name'])
+            writer.writerow(['username', 'name', 'email', 'gpa', 'file_name', 'additional_comments'])
 
             resumes = Resume.objects.filter(username=user)
             for resume in resumes:
                 file_name = str(resume.resume_file).split("/")[2]
-                record = [user.username, user.name, user.email, user.gpa, file_name]
+                record = [user.username, user.name, user.email, user.gpa, file_name, comments]
                 writer.writerow(record)
 
                 src = str(resume.resume_file)
@@ -115,24 +115,26 @@ def adminTest(request):
     if request.method == "POST":
         option = request.POST.get('option')
         if option == "scrape":
-            # temporary database population with the jobs.csv that contains hand labeled data (would later replace with a job scraper call)
-            with open('jobs4me/ML_NLP/jobs.csv', newline='') as csv_file:
-                reader = csv.DictReader(csv_file)
-                for row in reader:
-                    new_job = Job(
-                        title=row['title'],
-                        company=row['company'],
-                        description=row['job_desc'],
-                        salary_range=row['salary'],
-                        location=row['location'],
-                        post_age=row['date_posted'],
-                        url=row['url']
-                    )
-                    new_job.save()
+            # uncomment for demo
+            job_types = ['robotics engineer', 'software engineer', 'machine learning', 'data science', 'electrical engineer']
+            records = scrapeJobs(job_types)
 
-            # later code for populating database with a job scraper call
-            # job_types = ['robotics engineer', 'software engineer', 'machine learning', 'data science', 'electrical engineer']
-            # records = scrapeJobs(job_types)
+            # uncomment for initial DB population
+            # with open('jobs4me/ML_NLP/jobs.csv', newline='') as csv_file:
+            #     reader = csv.DictReader(csv_file)
+            #     for row in reader:
+            #         new_job = Job(
+            #             title=row['title'],
+            #             company=row['company'],
+            #             description=row['job_desc'],
+            #             salary_range=row['salary'],
+            #             location=row['location'],
+            #             post_age=row['date_posted'],
+            #             url=row['url']
+            #         )
+            #         new_job.save()
+
+            # uncomment for future application
             # for r in records:
             #     new_job = Job(
             #         title=r[0],
@@ -147,7 +149,7 @@ def adminTest(request):
         elif option == "job-extract":
             extractKeywords()
         elif option == "resume":
-            matchResumeToJobs(request.user)
+            matchResumeToJobs(request.user, '')
         elif option == "resumes-csv":
             resumeDataToCsv(request.user, "admin")
         elif option == "resumes-csv-user":
@@ -174,7 +176,7 @@ def adminTest(request):
                 request.POST['push-bullet']
             )
 
-    return render(request, 'jobs4me/admin_test.html')
+    return render(request, 'jobs4me/admin_portal.html')
 
 def registerPage(request):
     if request.user.is_authenticated:
@@ -263,6 +265,7 @@ def home(request):
         'phone_number': phone_number,
         'address': address,
         'additional_comments': additional_comments,
-        'resumes': resumes
+        'resumes': resumes,
+        'is_super': request.user.is_superuser
     }
     return render(request, 'jobs4me/dashboard.html', context)
