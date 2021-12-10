@@ -56,9 +56,11 @@ jobs:
           path: .
       
       - name: Log in to Azure CLI
-        uses: azure/actions/login@v1
+        uses: azure/login@v1
+        env: 
+          CREDENTIALS: ${{ secrets.JOBS4ME_AZURE_CREDENTIALS }}
         with:
-          creds: ${{ secrets.JOBS4ME_AZURE_CREDENTIALS }}
+          creds: ${{ env.CREDENTIALS }}
     
       - name: Disable static collection and set migration command on App Service
         uses: Azure/appservice-settings@v1
