@@ -1,24 +1,18 @@
----
-services: app-service\web,app-service
-platforms: python
-author: cephalin
----
+# Welcome to Jobs4Me!
 
-# Django and PostgreSQL sample for Azure App Service
+## What is the problem? And how does Jobs4Me address it?
+Nowadays, as college students are often on the lookout for jobs/internships in their disciplines, they are often faced with difficulties finding such roles as well as dissatisfaction when they don’t get what they are looking for. Now, some of this could be attributed to mistakes, such as being unprepared for interviews or starting the search too late in the season. But, a lot of the dissatisfaction occurs because they apply to the wrong kind of jobs. Maybe the role demands a different skill set and another candidate with less  experience/qualifications could be better suited for that specific job role. This problem is not just local to one student or a university but is widespread to all age groups of students, across all technical/non-technical fields and demographic boundaries.
 
-This samples is a simple Django app that connects to a PostgreSQL database. The sample is used with the following tutorials:
+There is a need for a resume matching system to be in place to give career recommendations and job matches based on GPA, skill sets, and projects/internship experiences derived from resumes of students, and Jobs4Me is a a web application that functions to do just that!
 
-- [Deploy a Django web app with PostgreSQL in Azure App Service (Azure CLI)](https://docs.microsoft.com/azure/app-service/containers/tutorial-python-postgresql-app).
-- [Deploy a Django web app with PostgreSQL using the Azure portal](https://docs.microsoft.com/en-us/azure/developer/python/tutorial-python-postgresql-app-portal).
+## How it works
+On landing, the user can register an account (including information such as email, name, phone number, and GPA) and/or login. The user is then taken to the dashboard, where they can view/delete their uploaded resumes (if any) and view/remove previously recommended jobs. When the user uploads a resume, our machine learning matching algorithm executed in the background for all of the resumes the user has uploaded so far. We retrieve job information from a database of jobs, scraped from Indeed, and extract the keywords of the users' resumes, and perform the matching on this information. Recommended jobs are then the top 5 most matched jobs, and the user can receive notifications via email, SMS, and/or push bullet, which contain basic information about each job, and a link to the original posting.
 
-When deployed to Azure App Service, the database connection information is specified via environment variables `DBHOST`, `DBPASS`, `DBUSER`, and `DBNAME`. This app always uses the default PostgreSQL port. See the tutorials for more information.
+## Contributions
+This project was developed by Souryendu Das and Dean Orenstein, 2 students in CSCE 489 (special topics: IoT) at Texas A&M University. Souryendu focused more on the NLP and ML backend, and Dean worked on the majority of the app and cloud development/set-up.
 
-## Change log
+## Technical Details and Future Improvements
+This is a Django web app, hosted on Azure, that uses a PostreSQL database. To send SMS messages, we used a communication service and phone number provided by Azure. To send email, we registered a SendGrid sender key, which we hooked up to our TAMU email, so we can send user email notifications. To send Push Bullet notifications, the user simply needs to own an Android device and provide the Push Bullet key provided to them during Push Bullet set-up. On the ML side, we first filter the job candidates based on the user's GPA (since some jobs require certain GPAs to even be considered). Then, we perform a cosine similarity on the job description and user information, as well as a Fuzzy Wuzzy similarity index between the releveant skillsets and user information. The match percentage for each job is then calculated, and we return the top 5 jobs for the user.
 
-- 27 Oct 2020: Possible breaking change: removed use of the `DJANGO_ENV` environment variable to switch between local and production settings. The code instead triggers the selection using the `WEBSITE_HOSTNAME` environment variable, which is defined when the code is running inside the the Azure App Service container. See manage.py and azuresite/wsgi.py.
+In the future, we would look to add useful features on the frontend, such as a loading bar/animation (the matching routine takes a few seconds), custom made artwork in the background, scaling for mobile use, environment variables for the API keys (so the user doesnt need to type them in every time), enhanced styling/better look and feel, an official navigation bar and/or side bar, and better formatting of information. If this project were to be released to the public long term, we would want to greatly improve the ML side of things, as well as add asynchronous operations to pull jobs every x hours/days (which perhaps the user can decide), rather than running the ML matching right after the user uploads a resume. To elaborate, our ML only runs on a set number of 80-100 (now outdated) jobs on Indeed, and these jobs are limited to the computer science/electrical engineering/data science domains. We would want to find a way to automatically assign difficulty level to the jobs (rather than hand labelling them), so we could pull thousands of jobs and get a much larger corpus of jobs that the user may be suitable in. Because the matching would obviously take much longer if we did this, pulling at a set interval, without the user having to wait, and then notifying the user of jobs above some certain matching threshold (perhaps 80%) would be great.
 
-- 12 Oct 2020: **BREAKING CHANGE**: The `DBHOST` environment variable is expected to contain *only* the server name, not the full URL, which is constructed at run time (see azuresite/production.py). Similarly, `DBUSER` is expected to contain only the user name, not username@servername as before, because using the simpler `DBHOST` the code can also construct the correct login form at run time (again in azuresite/production.py), avoiding failures that arise when `DBUSER` lacks the @servername portion.  
-
-## Contributing
-
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
