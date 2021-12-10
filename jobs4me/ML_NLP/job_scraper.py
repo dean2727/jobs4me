@@ -65,6 +65,7 @@ def getJobInfo(card, atag):
 # retrieve n jobs from indeed.com for a certain job position and location
 def addJobRecords(position, location, n, records):
     url = getUrl(position, location)
+    #print(url)
     num_records = 0
     while True:
         response = requests.get(url)
