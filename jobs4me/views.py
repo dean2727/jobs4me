@@ -21,7 +21,7 @@ from jobs4me.notifications.send_sms import *
 from jobs4me.notifications.send_mail import *
 
 # match resumes of current user to the top 5 highest chance jobs (scraped from Indeed), finding suitable jobs
-def matchResumeToJobs(user, push_bullet_key):
+def matchResumeToJobs(user, push_bullet_key, email_key):
     resume_list = 'jobs4me/user_csvs/user_' + str(user) + '/resumes_data.csv'
     getSuitableJobs(resume_list, str(user))
 
@@ -43,17 +43,7 @@ def matchResumeToJobs(user, push_bullet_key):
                     new_suitable_job.save()
 
                     # notify user of new suitable job
-                    sendSms(str(user), user.name, user.phone_number, row['match percentage'])
-                    sendEmail(user.email,
-                    "<body>" +
-                        "<h3>Hi " + user.name + "!</h3>" +
-                        "<p><b>We found a new job for you, which matched " + row['match percentage'] + "%" + " of your resumes! Here are some details:</b><p>" +
-                        "<p><b>Title</b>: " + job.title + "</p>" +
-                        "<p><b>Company</b>: " + job.company + "</p>" + 
-                        "<p><b>Location</b>: " + job.location + "</p>" + 
-                        "<p><b>URL</b>: " + job.url + "</p>" + 
-                    "</body>"
-                    )
+                    # sendSms(str(user), user.name, user.phone_number, row['match percentage'])
                     if push_bullet_key:
                         sendPushBulletNotification(
                             str(user),
@@ -64,6 +54,18 @@ def matchResumeToJobs(user, push_bullet_key):
                             "Location: " + job.location + "\n" + 
                             "URL: " + job.url,
                             push_bullet_key
+                        )
+                    if email_key:
+                        sendEmail(user.email,
+                            "<body>" +
+                                "<h3>Hi " + user.name + "!</h3>" +
+                                "<p><b>We found a new job for you, which matched " + row['match percentage'] + "%" + " of your resumes! Here are some details:</b><p>" +
+                                "<p><b>Title</b>: " + job.title + "</p>" +
+                                "<p><b>Company</b>: " + job.company + "</p>" + 
+                                "<p><b>Location</b>: " + job.location + "</p>" + 
+                                "<p><b>URL</b>: " + job.url + "</p>" + 
+                            "</body>",
+                            email_key
                         )
 
         i += 1
@@ -101,23 +103,28 @@ def resumeDataToCsv(user, mode):
         if os.path.exists('jobs4me/user_csvs'):
             cmd = 'rm -rfv jobs4me/user_csvs'
             os.system(cmd)
-            os.mkdir('jobs4me/user_csvs')
+        
+        os.mkdir('jobs4me/user_csvs')
 
         users = AppUser.objects.all()
-        for user in users:
-            username = user.username
-            
-            os.mkdir('jobs4me/user_csvs/user_' + username)
-            os.mkdir('jobs4me/user_csvs/user_' + username + '/resumes')
+        for other_user in users:
+            username = other_user.username
+
+            if os.path.exists('jobs4me/user_csvs/user_' + username):
+                cmd = 'rm -rfv jobs4me/user_csvs/user_' + username
+                os.system(cmd)
+
+            cmd = 'mkdir -p jobs4me/user_csvs/user_' + username + '/resumes'
+            os.system(cmd)
 
             fid = open('jobs4me/user_csvs/user_' + username + '/resumes_data.csv', 'w', newline='', encoding='utf-8') 
             writer = csv.writer(fid)
             writer.writerow(['username', 'name', 'email', 'gpa', 'file_name', 'additional_comments'])
 
-            resumes = Resume.objects.filter(username=user)
+            resumes = Resume.objects.filter(username=other_user)
             for resume in resumes:
                 file_name = str(resume.resume_file).split("/")[2]
-                record = [user.username, user.name, user.email, user.gpa, file_name, comments]
+                record = [user.username, user.name, user.email, user.gpa, file_name, user.comments]
                 writer.writerow(record)
 
                 src = str(resume.resume_file)
@@ -167,7 +174,10 @@ def adminTest(request):
         elif option == "job-extract":
             extractKeywords()
         elif option == "resume":
-            matchResumeToJobs(request.user, '')
+            if not os.path.exists('jobs4me/user_csvs/user_' + str(request.user)):
+                messages.error(request, 'Unable to match! Upload a resume first!')
+            else:
+                matchResumeToJobs(request.user, '', '')
         elif option == "resumes-csv":
             resumeDataToCsv(request.user, "admin")
         elif option == "resumes-csv-user":
@@ -184,13 +194,13 @@ def adminTest(request):
                 "</body>"
             )
         
-        if request.POST.get('sms-number'):
-            sendSms(
-                str(request.user),
-                request.user.name,
-                request.POST['sms-number'],
-                "88%"
-            )
+        # if request.POST.get('sms-number'):
+        #     sendSms(
+        #         str(request.user),
+        #         request.user.name,
+        #         request.POST['sms-number'],
+        #         "88%"
+        #     )
         if request.POST.get('push-bullet'):
             sendPushBulletNotification(
                 str(request.user),
@@ -201,6 +211,18 @@ def adminTest(request):
                 "Location: Dallas, TX\n" + 
                 "URL: https://www.google.com",
                 request.POST['push-bullet']
+            )
+        if request.POST.get('send-email'):
+            sendEmail(request.user.email,
+                "<body>" +
+                    "<h3>Hi " + request.user.name + "!</h3>" +
+                    "<p><b>We found a new job for you, which matched 88" + "%" + " of your resumes! Here are some details:</b><p>" +
+                    "<p><b>Title</b>: Software Engineer I</p>" +
+                    "<p><b>Company</b>: Chase Bank</p>" + 
+                    "<p><b>Location</b>: Dallas, TX</p>" + 
+                    "<p><b>URL</b>: https://www.google.com</p>" + 
+                "</body>",
+                request.POST['send-email']
             )
 
     return render(request, 'jobs4me/admin_portal.html')
@@ -253,8 +275,11 @@ def home(request):
             deleted_resume.delete()
 
             # update directory/file data locations which contained that resume
-            os.remove(str(deleted_resume.resume_file))
-            resumeDataToCsv(request.user, "user")
+            try:
+                os.remove(str(deleted_resume.resume_file))
+                resumeDataToCsv(request.user, "user")
+            except:
+                pass
 
             messages.success(request, 'Resume \'' + deleted_resume.name + '\' was deleted!')
 
@@ -282,10 +307,15 @@ def home(request):
                 )
                 resume.save()
 
-                resumeDataToCsv(request.user, "user")
-                matchResumeToJobs(request.user, request.POST['push-bullet-key'])
-
-                messages.success(request, 'Resume \'' + resume.name + '\' added!')
+                try:
+                    resumeDataToCsv(request.user, "user")
+                except:
+                    pass
+                try:
+                    matchResumeToJobs(request.user, request.POST['push-bullet-key'], request.POST['send-grid-token'])
+                    messages.success(request, 'Resume \'' + resume.name + '\' added!')
+                except:
+                    messages.error(request, 'Something went wrong while trying to match your resumes to jobs! Sorry about that.')
     
     # get customer info and resumes from db, put it in context to pass to page
     form = UploadResumeForm()

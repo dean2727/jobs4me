@@ -18,6 +18,9 @@
                     if (msg_content.includes("deleted") || msg_content.includes("added") || msg_content.includes("job")) {
                         notifier.success(msg_content);
                     }                    
+                    if (msg_content.includes("wrong")) {
+                        notifier.warning(msg_content);
+                    }
                 }
             }
         </script>
@@ -59,9 +62,13 @@
                                 {{ form.resume_file }}
                             </label>
                             <label for="push-bullet-key" style="font-size: 12px;">
-                                Have a PushBullet account? Insert your key to receive a PushBullet notification for recommended jobs!
+                                Have a PushBullet account? Insert your key to receive PushBullet notifications for recommended jobs!
                             </label>
                             <input type="text" name="push-bullet-key" id="push-bullet-key" placeholder="PushBullet key">
+                            <label for="send-grid-token" style="font-size: 12px;">
+                                Enter the SendGrid sender key to receive email notifications of recommended jobs!
+                            </label>
+                            <input type="text" name="send-grid-token" id="send-grid-token" placeholder="SendGrid token">
                             <input type="submit" value="Submit" class="submit-input">
                         </form>
                     </div>

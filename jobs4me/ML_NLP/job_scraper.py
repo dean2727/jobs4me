@@ -82,7 +82,10 @@ def addJobRecords(position, location, n, records):
                 valid_tags.append(tag)
 
         for i in range(len(cards)):
-            record = getJobInfo(cards[i], valid_tags[i])
+            try:
+                record = getJobInfo(cards[i], valid_tags[i])
+            except:
+                pass
             records.append(record)
             num_records += 1
             if num_records == n:
