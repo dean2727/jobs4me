@@ -141,23 +141,23 @@ def adminTest(request):
         option = request.POST.get('option')
         if option == "scrape":
             # uncomment for demo
-            job_types = ['robotics engineer', 'software engineer', 'machine learning', 'data science', 'electrical engineer']
-            records = scrapeJobs(job_types)
+            #job_types = ['robotics engineer', 'software engineer', 'machine learning', 'data science', 'electrical engineer']
+            #records = scrapeJobs(job_types)
 
             # uncomment for initial DB population
-            # with open('jobs4me/ML_NLP/jobs.csv', newline='') as csv_file:
-            #     reader = csv.DictReader(csv_file)
-            #     for row in reader:
-            #         new_job = Job(
-            #             title=row['title'],
-            #             company=row['company'],
-            #             description=row['job_desc'],
-            #             salary_range=row['salary'],
-            #             location=row['location'],
-            #             post_age=row['date_posted'],
-            #             url=row['url']
-            #         )
-            #         new_job.save()
+            with open('jobs4me/ML_NLP/jobs.csv', newline='') as csv_file:
+                reader = csv.DictReader(csv_file)
+                for row in reader:
+                    new_job = Job(
+                        title=row['title'],
+                        company=row['company'],
+                        description=row['job_desc'],
+                        salary_range=row['salary'],
+                        location=row['location'],
+                        post_age=row['date_posted'],
+                        url=row['url']
+                    )
+                    new_job.save()
 
             # uncomment for future application
             # for r in records:
