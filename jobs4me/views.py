@@ -35,6 +35,7 @@ def matchResumeToJobs(user, push_bullet_key):
                 candidate_jobs = Job.objects.filter(title=row['job title']).filter(company=row['company name'])
                 for job in candidate_jobs:
                     # only add if job isnt already in SuitableJob table
+                    print(str(job.id), job.title)
                     if SuitableJob.objects.filter(job_id=job.id).exists():
                         continue
                     new_suitable_job = SuitableJob(
@@ -296,7 +297,6 @@ def home(request):
     address = request.user.city + ", " + request.user.state + " " + request.user.country
     additional_comments = request.user.comments
     resumes = Resume.objects.filter(username=request.user)
-    suitable_jobs = SuitableJob.objects.filter(username=request.user)
 
     context = {
         'form': form,

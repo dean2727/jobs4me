@@ -39,7 +39,7 @@ def getSuitableJobs(resume_list, username):
                 file_location = 'jobs4me/user_csvs/user_' + username + '/resumes/' + str(column)
                 resume = extract_text(file_location)
                 text_resume = str(resume)
-                if not type(comments[comment_idx]) == float:
+                if not isinstance(comments[comment_idx], np.float64):
                     text_resume += " " + comments[comment_idx]
                 summarize(text_resume, ratio=1)
             if str(column).find("@") != -1:
