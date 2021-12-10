@@ -37,13 +37,13 @@ class Resume(models.Model):
     resume_file = models.FileField(upload_to=user_directory_path)
 
 class Job(models.Model):
-    title = models.CharField(max_length=70)
-    company = models.CharField(max_length=160)
+    title = models.CharField(max_length=200)
+    company = models.CharField(max_length=200)
     description = models.TextField(null=True)
-    salary_range = models.CharField(max_length=32, null=True)
-    location = models.CharField(max_length=40)
-    post_age = models.CharField(max_length=20)
-    url = models.CharField(max_length=100, null=True)
+    salary_range = models.CharField(max_length=200, null=True)
+    location = models.CharField(max_length=200)
+    post_age = models.CharField(max_length=200)
+    url = models.CharField(max_length=300, null=True)
     def __str__(self):
         return self.title
 
