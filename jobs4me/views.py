@@ -18,8 +18,9 @@ from jobs4me.ML_NLP.ML_matching import getSuitableJobs
 from jobs4me.ML_NLP.job_scraper import scrapeJobs
 from jobs4me.notifications.send_notif import *
 from jobs4me.notifications.send_sms import *
+from jobs4me.notifications.send_mail import *
 
-# match latest resume of current user to the top 5 highest chance jobs (scraped from Indeed), finding suitable jobs
+# match resumes of current user to the top 5 highest chance jobs (scraped from Indeed), finding suitable jobs
 def matchResumeToJobs(user, push_bullet_key):
     resume_list = 'jobs4me/user_csvs/user_' + str(user) + '/resumes_data.csv'
     getSuitableJobs(resume_list, str(user))
@@ -43,12 +44,22 @@ def matchResumeToJobs(user, push_bullet_key):
                     new_suitable_job.save()
 
                     # notify user of new suitable job
-                    sendSms(str(user), user.name, user.phone_number, job.title, job.company, job.location, row['match percentage'])
+                    sendSms(str(user), user.name, user.phone_number, row['match percentage'])
+                    sendEmail(user.email,
+                    "<body>" +
+                        "<h3>Hi " + user.name + "!</h3>" +
+                        "<p><b>We found a new job for you, which matched " + row['match percentage'] + "%" + " of your resumes! Here are some details:</b><p>" +
+                        "<p><b>Title</b>: " + job.title + "</p>" +
+                        "<p><b>Company</b>: " + job.company + "</p>" + 
+                        "<p><b>Location</b>: " + job.location + "</p>" + 
+                        "<p><b>URL</b>: " + job.url + "</p>" + 
+                    "</body>"
+                    )
                     if push_bullet_key:
                         sendPushBulletNotification(
                             str(user),
                             "New job from Jobs4Me!",
-                            "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "% of your latest resume! Here are some details:\n" +
+                            "Hi " + user.name + "! We found a new job for you, which matched " + row['match percentage'] + "%" + " of your resumes! Here are some details:\n" +
                             "Title: " + job.title + "\n" +
                             "Company: " + job.company + "\n" + 
                             "Location: " + job.location + "\n" + 
@@ -162,21 +173,30 @@ def adminTest(request):
             resumeDataToCsv(request.user, "admin")
         elif option == "resumes-csv-user":
             resumeDataToCsv(request.user, "user")
+        elif option == "send-email":
+            sendEmail(request.user.email,
+                "<body>" +
+                    "<h3>Hi " + request.user.name + "!</h3>" +
+                    "<p><b>We found a new job for you, which matched 88" + "%" + " of your resumes! Here are some details:</b><p>" +
+                    "<p><b>Title</b>: Software Engineer I</p>" +
+                    "<p><b>Company</b>: Chase Bank</p>" + 
+                    "<p><b>Location</b>: Dallas, TX</p>" + 
+                    "<p><b>URL</b>: https://www.google.com</p>" + 
+                "</body>"
+            )
         
         if request.POST.get('sms-number'):
             sendSms(
                 str(request.user),
                 request.user.name,
                 request.POST['sms-number'],
-                "Software Engineer I",
-                "https://www.google.com",
                 "88%"
             )
         if request.POST.get('push-bullet'):
             sendPushBulletNotification(
                 str(request.user),
                 "New job from Jobs4Me!",
-                "Hi " + request.user.name + "! We found a new job for you, which matched 88% of your latest resume! Here are some details:\n" +
+                "Hi " + request.user.name + "! We found a new job for you, which matched 88" + "%" + " of your resumes! Here are some details:\n" +
                 "Title: Software Engineer I\n" +
                 "Company: Chase Bank\n" + 
                 "Location: Dallas, TX\n" + 
@@ -238,6 +258,17 @@ def home(request):
             resumeDataToCsv(request.user, "user")
 
             messages.success(request, 'Resume \'' + deleted_resume.name + '\' was deleted!')
+
+        # user deleted job
+        elif request.POST.get("delete-job"):
+            items = request.POST.get("delete-job").split("~")
+            title, company = items[0], items[1]
+            deleted_jobs = Job.objects.filter(title=title).filter(company=company)
+            for i in range(len(deleted_jobs)):
+                deleted_suitable_job = SuitableJob.objects.filter(job_id=deleted_jobs[i])
+                deleted_suitable_job.delete()
+
+                messages.success(request, 'Removed recommended job!')
 
         # user uploaded new resume
         else:

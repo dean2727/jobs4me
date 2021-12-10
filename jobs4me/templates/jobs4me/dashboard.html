@@ -15,7 +15,7 @@
                 msgs = document.getElementsByClassName("status-message");
                 for (const msg of msgs) {
                     msg_content = msg.innerHTML;
-                    if (msg_content.includes("deleted") || msg_content.includes("added")) {
+                    if (msg_content.includes("deleted") || msg_content.includes("added") || msg_content.includes("job")) {
                         notifier.success(msg_content);
                     }                    
                 }
@@ -121,6 +121,11 @@
                         <div class="col-6">
                             <div class="white-div-2">
                                 <h5><i class="fas fa-briefcase"></i>  {{ sj.job_id.title }}</h5>
+                                <form class="trash" method="POST" action="">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="delete-job" value="{{ sj.job_id.title }}~{{ sj.job_id.company }}">
+                                    <button class="trash-button" type="submit"><i class="fa fa-trash"></i></button>
+                                </form>
                                 <p><i class="fas fa-building"></i>  {{ sj.job_id.company }}</p> 
                                 {% if sj.job_id.salary_range %}
                                     <p><i class="fas fa-money-bill-alt"></i> {{ sj.job_id.salary_range }}</p>     
