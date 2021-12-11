@@ -1,6 +1,7 @@
 # Welcome to Jobs4Me!
 
-https://jobs4me.azurewebsites.net/
+Hosted website: https://jobs4me.azurewebsites.net/
+Project report can be found [here](https://docs.google.com/document/d/1dTBu7sjGFyVFpETi7lRof6qgons0607J/edit?usp=sharing&ouid=118151331063501736585&rtpof=true&sd=true)
 
 ## What is the problem? And how does Jobs4Me address it?
 Nowadays, as college students are often on the lookout for jobs/internships in their disciplines, they are often faced with difficulties finding such roles as well as dissatisfaction when they don’t get what they are looking for. Now, some of this could be attributed to mistakes, such as being unprepared for interviews or starting the search too late in the season. But, a lot of the dissatisfaction occurs because they apply to the wrong kind of jobs. Maybe the role demands a different skill set and another candidate with less experience/qualifications could be better suited for that specific job role. This problem is not just local to one student or a university but is widespread to all age groups of students, across all technical/non-technical fields and demographic boundaries.
