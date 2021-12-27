@@ -1,6 +1,6 @@
 # Welcome to Jobs4Me!
 
-Hosted website: https://jobs4me.azurewebsites.net/
+Hosted website (may not be accessible now): https://jobs4me.azurewebsites.net/
 
 Project report can be found [here](https://docs.google.com/document/d/1dTBu7sjGFyVFpETi7lRof6qgons0607J/edit?usp=sharing&ouid=118151331063501736585&rtpof=true&sd=true)
 
@@ -11,6 +11,9 @@ There is a need for a resume matching system to be in place to give career recom
 
 ## How it works
 On landing, the user can register an account (including information such as email, name, phone number, and GPA) and/or log in. The user is then taken to the dashboard, where they can view/delete their uploaded resumes (if any) and view/remove previously recommended jobs. When the user uploads a resume, our machine learning matching algorithm is executed in the background for all of the resumes the user has uploaded so far. We retrieve job information from a database of jobs, scraped from Indeed, and extract the keywords of the users' resumes, and perform the matching on this information. Recommended jobs are then the top 5 most matched jobs, and the user can receive notifications via email, SMS, and/or push bullet, which contains basic information about each job, and a link to the original posting.
+
+## Demo
+![Demo](https://github.com/dean2727/jobs4me/demo.gif)
 
 ## Contributions
 This project was developed by Souryendu Das and Dean Orenstein, 2 students in CSCE 489 (special topics: IoT) at Texas A&M University. Souryendu focused more on the NLP and ML backend, and Dean worked on the majority of the app and cloud development/set-up.
